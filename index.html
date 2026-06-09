@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SV相性">
+<meta name="theme-color" content="#185FA5">
+<title>SV 相性チェッカー</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --bg:#f4f3f0;--bg2:#ffffff;--bg3:#edebe4;--bg4:#e5e3da;
+  --bdr:rgba(0,0,0,0.09);--bdr2:rgba(0,0,0,0.16);
+  --t:#18181a;--t2:#5c5b57;--t3:#9a9890;
+  --accent:#185fa5;--accent-bg:#e6f0fb;--accent-t:#0c3f7a;
+  --adv-bg:#d8f2e8;--adv-t:#074534;
+  --sadv-bg:#a8dfc9;--sadv-t:#074534;
+  --even-bg:#e9e7e0;--even-t:#4a4946;
+  --sdis-bg:#f5c4b3;--sdis-t:#6b2210;
+  --dis-bg:#f9ddd5;--dis-t:#6b2210;
+  --r:12px;--rs:7px;
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#141413;--bg2:#1e1d1b;--bg3:#272622;--bg4:#2e2c28;
+  --bdr:rgba(255,255,255,0.09);--bdr2:rgba(255,255,255,0.16);
+  --t:#f0ede8;--t2:#9a9890;--t3:#66645f;
+  --accent-bg:#0b2a4a;--accent-t:#7ab4e8;
+  --adv-bg:#074534;--adv-t:#a8dfc9;
+  --sadv-bg:#0c5e47;--sadv-t:#a8dfc9;
+  --even-bg:#37352f;--even-t:#ccc9be;
+  --sdis-bg:#6b2210;--sdis-t:#f5c4b3;
+  --dis-bg:#451608;--dis-t:#f5c4b3;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--t);font-family:-apple-system,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic UI',sans-serif;font-size:14px}
+.app{display:flex;flex-direction:column;height:100%;max-width:700px;margin:0 auto}
+
+/* Topbar */
+.topbar{background:var(--bg2);border-bottom:0.5px solid var(--bdr);padding:calc(10px + var(--st)) 16px 10px;display:flex;align-items:center;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:10}
+.topbar svg{flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:700;color:var(--t);flex:1;letter-spacing:-.01em}
+.topbar-badge{font-size:10px;background:var(--accent-bg);color:var(--accent-t);padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap}
+
+/* Nav */
+nav{display:flex;background:var(--bg2);border-bottom:0.5px solid var(--bdr);flex-shrink:0}
+.nb{flex:1;padding:8px 4px calc(8px + 0px);border:none;background:none;cursor:pointer;font-size:10px;color:var(--t2);display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .15s;font-family:inherit}
+.nb svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nb.on{color:var(--accent);font-weight:700}
+.nb.on svg{stroke:var(--accent)}
+
+/* Pages */
+.page{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px calc(20px + var(--sb));display:none}
+.page.on{display:block}
+
+/* Cards */
+.card{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.card-head h2{font-size:14px;font-weight:700;color:var(--t);flex:1;letter-spacing:-.01em}
+.card-head .cnt{font-size:11px;color:var(--t3);background:var(--bg3);padding:2px 8px;border-radius:10px}
+
+/* Form elements */
+.field-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.field-row:last-child{margin-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 1.5px rgba(255,255,255,0.25) inset}
+.txt{flex:1;min-width:0;font-size:13px;padding:8px 10px;border-radius:var(--rs);border:0.5px solid var(--bdr);background:var(--bg3);color:var(--t);outline:none;font-family:inherit;-webkit-appearance:none}
+.txt:focus{border-color:var(--accent);background:var(--bg2)}
+.sel{width:94px;flex-shrink:0;font-size:12px;padding:8px 6px;border-radius:var(--rs);border:0.5px solid var(--bdr);background:var(--bg3);color:var(--t);outline:none;font-family:inherit;-webkit-appearance:none;cursor:pointer}
+.sel:focus{border-color:var(--accent)}
+.ib{background:none;border:none;cursor:pointer;color:var(--t3);padding:6px;border-radius:6px;display:flex;align-items:center;font-size:16px;flex-shrink:0;line-height:1}
+.ib:active{background:var(--bg3);color:var(--t)}
+.add-btn{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--t2);background:none;border:0.5px dashed var(--bdr2);border-radius:var(--rs);padding:8px 0;cursor:pointer;margin-top:8px;width:100%;font-family:inherit;transition:.12s}
+.add-btn:active{background:var(--bg3)}
+.sub-label{font-size:12px;color:var(--t2);font-weight:600;margin-bottom:8px;margin-top:2px}
+.sub-hint{font-size:11px;color:var(--t3);margin-bottom:8px}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.li{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t2)}
+.ld{width:10px;height:10px;border-radius:2px}
+.hint-txt{font-size:10px;color:var(--t3);margin-top:8px}
+
+/* Matrix */
+.mwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.mtable{border-collapse:separate;border-spacing:2px;table-layout:fixed}
+.mtable th{font-size:9px;font-weight:600;color:var(--t2);padding:2px}
+.mtable .rh{text-align:right;width:72px;max-width:72px;padding-right:5px}
+.mtable .chh{width:52px;max-width:52px;text-align:center;vertical-align:bottom}
+.chi{display:flex;flex-direction:column;align-items:center;gap:2px;padding-bottom:3px}
+.chl{max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px}
+.rhi{display:flex;align-items:center;justify-content:flex-end;gap:3px}
+.rhl{max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-size:9px}
+.mc{width:100%;height:26px;border-radius:4px;cursor:pointer;border:none;font-size:9px;font-weight:700;transition:opacity .1s;font-family:inherit}
+.mc:active{opacity:.65}
+.mc.adv{background:var(--adv-bg);color:var(--adv-t)}
+.mc.sadv{background:var(--sadv-bg);color:var(--sadv-t)}
+.mc.even{background:var(--even-bg);color:var(--even-t)}
+.mc.sdis{background:var(--sdis-bg);color:var(--sdis-t)}
+.mc.dis{background:var(--dis-bg);color:var(--dis-t)}
+.mc.slf{background:var(--bg3);cursor:default;opacity:.3}
+.mc.slf2{background:var(--bg3);cursor:default;opacity:.15}
+
+/* Advisor */
+.tog-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tog{padding:6px 13px;border-radius:20px;border:0.5px solid var(--bdr2);background:var(--bg2);font-size:12px;cursor:pointer;color:var(--t2);transition:.12s;white-space:nowrap;font-family:inherit}
+.tog.on{background:var(--accent-bg);color:var(--accent-t);border-color:var(--accent);font-weight:700}
+.tog:active{opacity:.7}
+.opp-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.opp-row label{font-size:12px;color:var(--t2);flex-shrink:0;white-space:nowrap;min-width:64px;font-weight:600}
+.opp-sel{flex:1;font-size:13px;padding:8px 10px;border-radius:var(--rs);border:0.5px solid var(--bdr);background:var(--bg3);color:var(--t);outline:none;font-family:inherit;-webkit-appearance:none;cursor:pointer}
+.opp-sel:focus{border-color:var(--accent)}
+
+/* Result cards */
+.result-wrap{margin-top:4px}
+.result-best{border-radius:var(--r);padding:14px 16px;border:1.5px solid #1d9e75;background:var(--adv-bg);margin-bottom:10px}
+.result-best-title{font-size:16px;font-weight:700;color:var(--t);margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rec-badge{font-size:11px;background:var(--accent-bg);color:var(--accent-t);padding:3px 10px;border-radius:20px;font-weight:700}
+.result-best-sub{font-size:12px;color:var(--t2)}
+
+.score-list{display:flex;flex-direction:column;gap:8px}
+.score-item{background:var(--bg2);border-radius:var(--rs);padding:11px 14px;border:0.5px solid var(--bdr)}
+.score-item.best-item{border-color:#1d9e75;border-width:1px}
+.score-name{font-size:13px;font-weight:700;color:var(--t);margin-bottom:8px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.best-mark{font-size:10px;background:var(--adv-bg);color:var(--adv-t);padding:2px 8px;border-radius:10px;font-weight:700}
+
+.class-rows{display:flex;flex-direction:column;gap:6px}
+.class-row-adv{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:6px;background:var(--bg3)}
+.class-label{font-size:11px;color:var(--t2);min-width:60px;flex-shrink:0;padding-top:3px;font-weight:600;line-height:1.3}
+.deck-badges{display:flex;flex-wrap:wrap;gap:4px;flex:1;align-items:center}
+.dbadge{display:inline-flex;align-items:center;font-size:10px;padding:3px 8px;border-radius:8px;font-weight:600;white-space:nowrap;line-height:1.2}
+.dbadge.adv{background:var(--adv-bg);color:var(--adv-t)}
+.dbadge.sadv{background:var(--sadv-bg);color:var(--sadv-t)}
+.dbadge.even{background:var(--even-bg);color:var(--even-t)}
+.dbadge.sdis{background:var(--sdis-bg);color:var(--sdis-t)}
+.dbadge.dis{background:var(--dis-bg);color:var(--dis-t)}
+.class-avg{font-size:10px;padding:3px 9px;border-radius:8px;font-weight:700;flex-shrink:0;white-space:nowrap;margin-left:2px}
+.class-avg.adv,.class-avg.sadv{background:var(--adv-bg);color:var(--adv-t);border:1px solid rgba(7,69,52,.25)}
+.class-avg.even{background:var(--even-bg);color:var(--even-t);border:1px solid rgba(74,73,70,.2)}
+.class-avg.sdis,.class-avg.dis{background:var(--sdis-bg);color:var(--sdis-t);border:1px solid rgba(107,34,16,.25)}
+
+.no-data{font-size:13px;color:var(--t3);text-align:center;padding:28px;line-height:1.9}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="8" height="11" rx="2"/>
+      <rect x="14" y="3" width="8" height="11" rx="2"/>
+      <path d="M6 18h12M12 14v4"/>
+    </svg>
+    <span class="topbar-title">SV 相性チェッカー</span>
+    <span class="topbar-badge">Worlds Beyond</span>
+  </div>
+
+  <nav>
+    <button class="nb on" onclick="goPage('decks',this)">
+      <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>
+      デッキ管理
+    </button>
+    <button class="nb" onclick="goPage('matrix',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      相性表
+    </button>
+    <button class="nb" onclick="goPage('advisor',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 5.66 1.4c-.56.83-1.66 1.34-1.66 2.6"/><circle cx="12" cy="17" r=".6" fill="currentColor" stroke="none"/></svg>
+      判定
+    </button>
+  </nav>
+
+  <!-- ===== PAGE: Deck Management ===== -->
+  <div class="page on" id="page-decks">
+
+    <div class="card">
+      <div class="card-head">
+        <h2>クラス設定</h2>
+        <span class="cnt" id="class-count">0 / 15</span>
+      </div>
+      <p class="sub-hint">ゲームに登場するクラス（職業）を登録してください</p>
+      <div id="class-list"></div>
+      <button class="add-btn" id="add-class-btn" onclick="addClass()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        クラスを追加
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>デッキ一覧</h2>
+        <span class="cnt" id="deck-count">0 / 30</span>
+      </div>
+      <p class="sub-hint">デッキ名と所属クラスを入力してください</p>
+      <div id="deck-list"></div>
+      <button class="add-btn" id="add-deck-btn" onclick="addDeck()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        デッキを追加
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ===== PAGE: Matrix ===== -->
+  <div class="page" id="page-matrix">
+    <div class="card">
+      <div class="card-head"><h2>相性マトリックス</h2></div>
+      <div class="legend">
+        <div class="li"><div class="ld" style="background:#1d9e75"></div>有利</div>
+        <div class="li"><div class="ld" style="background:#5dcaa5"></div>微有利</div>
+        <div class="li"><div class="ld" style="background:#aaa89e"></div>五分</div>
+        <div class="li"><div class="ld" style="background:#e8896a"></div>微不利</div>
+        <div class="li"><div class="ld" style="background:#d45a30"></div>不利</div>
+      </div>
+      <div class="mwrap"><div id="matrix"></div></div>
+      <p class="hint-txt">セルをタップすると相性が切り替わります（行 = 自分、列 = 相手）</p>
+    </div>
+  </div>
+
+  <!-- ===== PAGE: Advisor ===== -->
+  <div class="page" id="page-advisor">
+    <div class="card">
+      <div class="card-head"><h2>出すべきデッキを判定</h2></div>
+
+      <p class="sub-label">自分のデッキ（複数選択可）</p>
+      <div class="tog-grid" id="my-toggles"></div>
+
+      <p class="sub-label">相手が持ち込んだクラス</p>
+      <div id="opp-selects" style="margin-bottom:14px"></div>
+
+      <div id="adv-result"></div>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+/* ── Constants ── */
+const COLORS = [
+  '#378ADD','#1D9E75','#D4537E','#EF9F27','#7F77DD','#D85A30',
+  '#639922','#5F5E5A','#E24B4A','#0F6E56','#AFA9EC','#9FE1CB',
+  '#F0997B','#FAC775','#97C459','#F4C0D1','#85B7EB','#B4B2A9',
+  '#5DCAA5','#ED93B1','#CECBF6','#C0DD97','#F5C4B3','#F7C1C1',
+  '#E1F5EE','#FAEEDA','#FCEBEB','#E6F1FB','#EAF3DE','#FBEAF0'
+];
+const RKEYS    = ['adv','sadv','even','sdis','dis'];
+const RLABELS  = ['有利','微有利','五分','微不利','不利'];
+const RSCORES  = [2, 1, 0, -1, -2];
+const UNSET_ID = '__unset__';
+
+/* ── State ── */
+let classes  = [];   // {id, name}
+let decks    = [];   // {id, name, classId}
+let mdata    = {};   // "myId_oppId" → rkey
+let mySelected = new Set();
+let ndc = 0, ndd = 0;
+
+/* ── Persistence ── */
+function save() {
+  try {
+    localStorage.setItem('sv2_classes', JSON.stringify(classes));
+    localStorage.setItem('sv2_decks',   JSON.stringify(decks));
+    localStorage.setItem('sv2_mdata',   JSON.stringify(mdata));
+    localStorage.setItem('sv2_ndc', ndc);
+    localStorage.setItem('sv2_ndd', ndd);
+  } catch(e) {}
+}
+function load() {
+  try {
+    const c = localStorage.getItem('sv2_classes');
+    const d = localStorage.getItem('sv2_decks');
+    const m = localStorage.getItem('sv2_mdata');
+    if (c) classes = JSON.parse(c);
+    if (d) decks   = JSON.parse(d);
+    if (m) mdata   = JSON.parse(m);
+    ndc = parseInt(localStorage.getItem('sv2_ndc') || 0);
+    ndd = parseInt(localStorage.getItem('sv2_ndd') || 0);
+  } catch(e) {}
+}
+
+/* ── Helpers ── */
+function mkey(r,c)  { return r + '_' + c; }
+function getM(r,c)  { return mdata[mkey(r,c)] || 'even'; }
+function setM(r,c,v){ mdata[mkey(r,c)] = v; }
+function cycleM(r,c){ const i = (RKEYS.indexOf(getM(r,c)) + 1) % 5; setM(r,c,RKEYS[i]); save(); }
+
+function dcolor(d)  { const i = decks.indexOf(d); return COLORS[i >= 0 ? i % COLORS.length : 0]; }
+function dname(d, max) {
+  if (!d) return '?';
+  const n = (d.name || '').trim() || ('デッキ' + (decks.indexOf(d) + 1));
+  return n.length > max ? n.slice(0, max - 1) + '…' : n;
+}
+function cname(c, max) {
+  if (!c) return '不明';
+  const n = (c.name || '').trim() || ('クラス' + (classes.indexOf(c) + 1));
+  return n.length > max ? n.slice(0, max - 1) + '…' : n;
+}
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function scoreToRkey(s) {
+  if (s >=  1.5) return 'adv';
+  if (s >=  0.5) return 'sadv';
+  if (s >= -0.5) return 'even';
+  if (s >= -1.5) return 'sdis';
+  return 'dis';
+}
+
+/* ── Navigation ── */
+function goPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById('page-' + id).classList.add('on');
+  btn.classList.add('on');
+  if (id === 'matrix') renderMatrix();
+  if (id === 'advisor') renderAdvisor();
+}
+
+/* ── Page: Deck Management ── */
+function renderDecks() {
+  // Class count
+  document.getElementById('class-count').textContent = classes.length + ' / 15';
+  document.getElementById('add-class-btn').style.display = classes.length >= 15 ? 'none' : 'flex';
+
+  // Class list
+  document.getElementById('class-list').innerHTML = classes.map((c, i) => `
+    <div class="field-row">
+      <div class="dot" style="background:${COLORS[i % COLORS.length]}"></div>
+      <input class="txt" value="${esc(c.name)}" placeholder="クラス名（例：ドラゴン）"
+             oninput="updClass(${c.id}, this.value)">
+      ${classes.length > 1
+        ? `<button class="ib" onclick="rmClass(${c.id})" aria-label="削除">✕</button>`
+        : '<span style="width:28px"></span>'}
+    </div>`).join('');
+
+  // Deck count
+  document.getElementById('deck-count').textContent = decks.length + ' / 30';
+  document.getElementById('add-deck-btn').style.display = decks.length >= 30 ? 'none' : 'flex';
+
+  // Class options for deck selects
+  const classOpts = `<option value="">（クラスなし）</option>` +
+    classes.map(c => `<option value="${c.id}">${esc(cname(c, 20))}</option>`).join('');
+
+  // Deck list
+  document.getElementById('deck-list').innerHTML = decks.map((d, i) => {
+    const opts = classOpts.replace(`value="${d.classId}"`, `value="${d.classId}" selected`);
+    return `
+    <div class="field-row">
+      <div class="dot" style="background:${COLORS[i % COLORS.length]}"></div>
+      <input class="txt" value="${esc(d.name)}" placeholder="デッキ名（例：連携ロイヤル）"
+             oninput="updDeck(${d.id}, this.value)">
+      <select class="sel" onchange="updDeckClass(${d.id}, this.value)">${opts}</select>
+      ${decks.length > 1
+        ? `<button class="ib" onclick="rmDeck(${d.id})" aria-label="削除">✕</button>`
+        : '<span style="width:28px"></span>'}
+    </div>`;
+  }).join('');
+}
+
+/* ── Page: Matrix ── */
+function renderMatrix() {
+  const el = document.getElementById('matrix');
+  if (decks.length === 0) {
+    el.innerHTML = '<div class="no-data">デッキを登録してください</div>';
+    return;
+  }
+  let h = `<table class="mtable"><thead><tr><th class="rh"></th>`;
+  decks.forEach(d => {
+    h += `<th class="chh"><div class="chi">
+      <div class="dot" style="background:${dcolor(d)}"></div>
+      <span class="chl" title="${esc(dname(d,30))}">${esc(dname(d,5))}</span>
+    </div></th>`;
+  });
+  h += `</tr></thead><tbody>`;
+  decks.forEach((dr, ri) => {
+    h += `<tr><th class="rh"><div class="rhi">
+      <span class="rhl" title="${esc(dname(dr,30))}">${esc(dname(dr,7))}</span>
+      <div class="dot" style="background:${dcolor(dr)}"></div>
+    </div></th>`;
+    decks.forEach((dc, ci) => {
+      if (ri === ci) {
+        h += `<td style="padding:1px"><button class="mc slf" disabled>—</button></td>`;
+      } else {
+        const r = getM(dr.id, dc.id);
+        h += `<td style="padding:1px"><button class="mc ${r}"
+              onclick="clickCell(${dr.id},${dc.id})">${RLABELS[RKEYS.indexOf(r)]}</button></td>`;
+      }
+    });
+    h += `</tr>`;
+  });
+  h += `</tbody></table>`;
+  el.innerHTML = h;
+}
+
+/* ── Page: Advisor ── */
+function renderAdvisor() {
+  // My deck toggles
+  const togEl = document.getElementById('my-toggles');
+  if (decks.length === 0) {
+    togEl.innerHTML = '<div class="no-data" style="padding:12px">デッキを登録してください</div>';
+  } else {
+    togEl.innerHTML = decks.map(d =>
+      `<button class="tog${mySelected.has(d.id) ? ' on' : ''}" onclick="toggleMy(${d.id})">${esc(dname(d,15))}</button>`
+    ).join('');
+  }
+
+  // Build class options for opponent selects
+  // Group: classes that have at least one deck registered
+  const activeClasses = classes.filter(c => decks.some(d => String(d.classId) === String(c.id)));
+  const hasUnset = decks.some(d => !d.classId);
+  const classOpts =
+    activeClasses.map(c => `<option value="${c.id}">${esc(cname(c, 24))}</option>`).join('') +
+    (hasUnset ? `<option value="${UNSET_ID}">（クラスなし）</option>` : '');
+
+  // Preserve previous selections
+  const prevVals = [...document.querySelectorAll('#opp-selects .opp-sel')].map(s => s.value);
+  let html = '';
+  for (let i = 0; i < 2; i++) {
+    html += `<div class="opp-row">
+      <label>相手 ${i + 1}</label>
+      <select class="opp-sel" onchange="calcAdv()">${classOpts}</select>
+    </div>`;
+  }
+  document.getElementById('opp-selects').innerHTML = html;
+
+  // Restore previous / set defaults
+  const sels = document.querySelectorAll('#opp-selects .opp-sel');
+  sels.forEach((sel, i) => {
+    if (prevVals[i] && [...sel.options].some(o => o.value === prevVals[i])) {
+      sel.value = prevVals[i];
+    } else if (activeClasses[i]) {
+      sel.value = String(activeClasses[i].id);
+    } else if (activeClasses[0]) {
+      sel.value = String(activeClasses[0].id);
+    }
+  });
+
+  calcAdv();
+}
+
+function toggleMy(id) {
+  mySelected.has(id) ? mySelected.delete(id) : mySelected.add(id);
+  renderAdvisor();
+}
+
+/* ── Advisor Calculation ── */
+function getOppDecksForClass(val) {
+  if (val === UNSET_ID) return decks.filter(d => !d.classId);
+  return decks.filter(d => String(d.classId) === String(val));
+}
+function getClassLabel(val) {
+  if (val === UNSET_ID) return '（クラスなし）';
+  const c = classes.find(x => String(x.id) === String(val));
+  return c ? cname(c, 20) : '不明';
+}
+
+function calcAdv() {
+  const res = document.getElementById('adv-result');
+  const myIds = [...mySelected];
+
+  if (myIds.length === 0) {
+    res.innerHTML = '<div class="no-data">自分のデッキを1つ以上選択してください</div>';
+    return;
+  }
+
+  const oppSels = [...document.querySelectorAll('#opp-selects .opp-sel')].map(s => s.value).filter(v => v);
+  if (oppSels.length === 0) {
+    res.innerHTML = '<div class="no-data">相手のクラスを選択してください</div>';
+    return;
+  }
+
+  // Build opponent groups
+  const oppGroups = oppSels.map(val => ({
+    label: getClassLabel(val),
+    oppDecks: getOppDecksForClass(val)
+  }));
+
+  // Score each of my decks
+  const scored = myIds.map(mid => {
+    const md = decks.find(d => d.id === mid);
+    if (!md) return null;
+
+    let totalScore = 0;
+    const classBreakdowns = oppGroups.map(grp => {
+      const dmatches = grp.oppDecks.map(od => {
+        const r = getM(mid, od.id);
+        return { name: dname(od, 14), r, score: RSCORES[RKEYS.indexOf(r)] };
+      });
+      const avg = dmatches.length > 0
+        ? dmatches.reduce((s, x) => s + x.score, 0) / dmatches.length
+        : 0;
+      totalScore += avg;
+      return { label: grp.label, dmatches, avgKey: scoreToRkey(avg), avg };
+    });
+
+    return { md, totalScore, classBreakdowns };
+  }).filter(Boolean).sort((a, b) => b.totalScore - a.totalScore);
+
+  if (scored.length === 0) {
+    res.innerHTML = '<div class="no-data">有効なデッキが見つかりません</div>';
+    return;
+  }
+
+  const best = scored[0];
+  const diff = scored.length > 1 ? best.totalScore - scored[1].totalScore : 99;
+  const subMsg = diff < 0.1
+    ? '他のデッキと同等の相性です'
+    : diff >= 1.5
+    ? '相手に対して明確に最も有利なデッキです'
+    : 'わずかに最も有利なデッキです';
+
+  // ── Result HTML ──
+  let h = `<div class="result-best">
+    <div class="result-best-title">
+      ${esc(dname(best.md, 20))}
+      <span class="rec-badge">おすすめ</span>
+    </div>
+    <div class="result-best-sub">${subMsg}</div>
+  </div>`;
+
+  h += `<div class="score-list">`;
+  scored.forEach((s, idx) => {
+    h += `<div class="score-item${idx === 0 ? ' best-item' : ''}">
+      <div class="score-name">
+        ${esc(dname(s.md, 18))}
+        ${idx === 0 ? '<span class="best-mark">★ おすすめ</span>' : ''}
+      </div>
+      <div class="class-rows">`;
+
+    s.classBreakdowns.forEach(grp => {
+      h += `<div class="class-row-adv">
+        <span class="class-label">${esc(grp.label)}</span>`;
+
+      if (grp.dmatches.length === 0) {
+        h += `<div class="deck-badges"><span class="dbadge even">データなし</span></div>`;
+      } else {
+        h += `<div class="deck-badges">`;
+        grp.dmatches.forEach(dm => {
+          h += `<span class="dbadge ${dm.r}" title="${esc(dm.name)}">${esc(dm.name)} ${RLABELS[RKEYS.indexOf(dm.r)]}</span>`;
+        });
+        h += `</div>`;
+        h += `<span class="class-avg ${grp.avgKey}">${RLABELS[RKEYS.indexOf(grp.avgKey)]}</span>`;
+      }
+      h += `</div>`;
+    });
+
+    h += `</div></div>`;
+  });
+  h += `</div>`;
+
+  res.innerHTML = h;
+}
+
+/* ── CRUD ── */
+function addClass() {
+  if (classes.length >= 15) return;
+  classes.push({ id: ndc++, name: '' });
+  save(); renderDecks();
+}
+function rmClass(id) {
+  classes = classes.filter(c => c.id !== id);
+  decks.forEach(d => { if (String(d.classId) === String(id)) d.classId = ''; });
+  save(); renderDecks(); renderAdvisor();
+}
+function updClass(id, val) {
+  const c = classes.find(c => c.id === id);
+  if (c) { c.name = val; save(); renderMatrix(); renderAdvisor(); }
+}
+
+function addDeck() {
+  if (decks.length >= 30) return;
+  decks.push({ id: ndd++, name: '', classId: '' });
+  save(); renderDecks();
+}
+function rmDeck(id) {
+  if (decks.length <= 1) return;
+  decks = decks.filter(d => d.id !== id);
+  mySelected.delete(id);
+  save(); renderDecks(); renderMatrix(); renderAdvisor();
+}
+function updDeck(id, val) {
+  const d = decks.find(d => d.id === id);
+  if (d) { d.name = val; save(); renderMatrix(); renderAdvisor(); }
+}
+function updDeckClass(id, val) {
+  const d = decks.find(d => d.id === id);
+  if (d) { d.classId = val ? (isNaN(val) ? val : parseInt(val)) : ''; save(); renderAdvisor(); }
+}
+
+function clickCell(r, c) { cycleM(r, c); renderMatrix(); calcAdv(); }
+
+/* ── Init ── */
+load();
+if (classes.length === 0) {
+  classes = [{ id: ndc++, name: '' }, { id: ndc++, name: '' }];
+}
+if (decks.length === 0) {
+  decks = [{ id: ndd++, name: '', classId: '' }, { id: ndd++, name: '', classId: '' }];
+}
+renderDecks();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
