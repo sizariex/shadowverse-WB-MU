@@ -266,39 +266,46 @@ nav{display:flex;background:var(--bg2);border-bottom:0.5px solid var(--bdr);flex
     <div class="card">
       <div class="card-head"><h2>テンプレートを共有</h2></div>
       <div class="mode-tabs">
-        <button class="mtab on" id="tab-export" onclick="switchShareTab('export')">エクスポート</button>
-        <button class="mtab" id="tab-import" onclick="switchShareTab('import')">インポート</button>
+        <button class="mtab on" id="tab-upload" onclick="switchShareTab('upload')">アップロード</button>
+        <button class="mtab" id="tab-download" onclick="switchShareTab('download')">ダウンロード</button>
       </div>
 
-      <!-- Export -->
-      <div id="share-export">
-        <div class="share-info">クラス・デッキ・相性データをすべてテキストに変換します。コピーして相手に送ってください。</div>
-        <textarea class="share-textarea" id="export-text" readonly placeholder="「エクスポート」を押してください"></textarea>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="doExport()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            エクスポート
+      <!-- Upload -->
+      <div id="share-upload">
+        <div class="share-info">現在のデータをアップロードして16桁のパスを生成します。そのパスを相手に送ってください。</div>
+        <div class="btn-row" style="margin-bottom:14px">
+          <button class="btn btn-primary" id="upload-btn" onclick="doUpload()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            アップロード
           </button>
-          <button class="btn btn-secondary" onclick="doCopy()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            コピー
-          </button>
+        </div>
+        <div id="upload-result" style="display:none">
+          <div class="share-info" style="margin-bottom:8px">パスが生成されました。相手に送ってください。</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div id="pass-display" style="flex:1;font-size:18px;font-weight:700;letter-spacing:.15em;padding:12px 14px;background:var(--bg3);border-radius:var(--rs);color:var(--t);text-align:center;font-family:monospace"></div>
+            <button class="btn btn-secondary" onclick="copyPass()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              コピー
+            </button>
+          </div>
+          <p class="import-note" style="margin-top:8px">⚠️ パスは7日間有効です。</p>
         </div>
       </div>
 
-      <!-- Import -->
-      <div id="share-import" style="display:none">
-        <div class="share-info">受け取ったテキストを貼り付けてインポートしてください。</div>
-        <textarea class="share-textarea" id="import-text" placeholder="ここにテキストを貼り付け…"></textarea>
-        <p class="import-note">⚠️ 上書きインポート：現在のデータはすべて置き換えられます。<br>追加インポート：デッキとクラスを追加し、相性データをマージします。</p>
+      <!-- Download -->
+      <div id="share-download" style="display:none">
+        <div class="share-info">受け取った16桁のパスを入力してデータを読み込みます。</div>
+        <input class="txt" id="pass-input" placeholder="16桁のパスを入力…" maxlength="16"
+               style="font-size:16px;letter-spacing:.1em;text-align:center;font-family:monospace;margin-bottom:10px">
+        <p class="import-note" style="margin-bottom:10px">⚠️ 上書き：現在のデータはすべて置き換えられます。<br>追加：デッキとクラスを追加し相性データをマージします。</p>
         <div class="btn-row">
-          <button class="btn btn-primary" onclick="doImport('overwrite')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            上書きインポート
+          <button class="btn btn-primary" onclick="doDownload('overwrite')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            上書きで読み込む
           </button>
-          <button class="btn btn-secondary" onclick="doImport('merge')">
+          <button class="btn btn-secondary" onclick="doDownload('merge')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M8 6H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3"/><rect x="8" y="2" width="8" height="7" rx="1"/></svg>
-            追加インポート
+            追加で読み込む
           </button>
         </div>
       </div>
@@ -358,7 +365,7 @@ nav{display:flex;background:var(--bg2);border-bottom:0.5px solid var(--bdr);flex
 
 </div><!-- .app -->
 
-<script>
+<script type="module">
 /* ── Constants ── */
 const COLORS = [
   '#378ADD','#1D9E75','#D4537E','#EF9F27','#7F77DD','#D85A30',
@@ -714,88 +721,112 @@ function updDeckClass(id, val) {
 
 function clickCell(r, c) { cycleM(r, c); renderMatrix(); calcAdv(); }
 
-/* ── Share: Export ── */
-function doExport() {
-  const payload = {
-    version: 1,
-    classes: classes,
-    decks: decks,
-    mdata: mdata,
-    ndc: ndc,
-    ndd: ndd
-  };
-  const json = JSON.stringify(payload, null, 2);
-  document.getElementById('export-text').value = json;
-  showToast('エクスポートしました');
+/* ── Firebase ── */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAvkGNgXaTZyExAQj9cK3od6SR4LuHzpt0",
+  authDomain: "shadowversemu.firebaseapp.com",
+  databaseURL: "https://shadowversemu-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "shadowversemu",
+  storageBucket: "shadowversemu.firebasestorage.app",
+  messagingSenderId: "935188181410",
+  appId: "1:935188181410:web:1c3a360b1213c70bd642fb"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+function genPass() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&';
+  let p = '';
+  for (let i = 0; i < 16; i++) p += chars[Math.floor(Math.random() * chars.length)];
+  return p;
 }
 
-function doCopy() {
-  const txt = document.getElementById('export-text').value;
-  if (!txt) { showToast('先にエクスポートしてください'); return; }
-  navigator.clipboard.writeText(txt).then(() => {
-    showToast('クリップボードにコピーしました ✓');
+let currentPass = '';
+
+async function doUpload() {
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.textContent = 'アップロード中…';
+  try {
+    const pass = genPass();
+    const payload = { version: 1, classes, decks, mdata, ndc, ndd, createdAt: Date.now() };
+    await set(ref(db, 'templates/' + pass), payload);
+    currentPass = pass;
+    document.getElementById('pass-display').textContent = pass;
+    document.getElementById('upload-result').style.display = 'block';
+    showToast('アップロードしました ✓');
+  } catch(e) {
+    showToast('❌ アップロードに失敗しました');
+  }
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> アップロード`;
+}
+
+function copyPass() {
+  navigator.clipboard.writeText(currentPass).then(() => {
+    showToast('パスをコピーしました ✓');
   }).catch(() => {
-    document.getElementById('export-text').select();
-    document.execCommand('copy');
-    showToast('コピーしました ✓');
+    showToast('コピーできませんでした');
   });
 }
 
-/* ── Share: Import ── */
-function doImport(mode) {
-  const txt = document.getElementById('import-text').value.trim();
-  if (!txt) { showToast('テキストを貼り付けてください'); return; }
-  let payload;
-  try { payload = JSON.parse(txt); } catch(e) { showToast('❌ JSONが不正です'); return; }
-  if (!payload.classes || !payload.decks || !payload.mdata) { showToast('❌ データ形式が正しくありません'); return; }
+async function doDownload(mode) {
+  const pass = document.getElementById('pass-input').value.trim();
+  if (pass.length !== 16) { showToast('16桁のパスを入力してください'); return; }
+  showToast('読み込み中…');
+  try {
+    const snap = await get(ref(db, 'templates/' + pass));
+    if (!snap.exists()) { showToast('❌ パスが見つかりません'); return; }
+    const payload = snap.val();
+    if (!payload.classes || !payload.decks || !payload.mdata) { showToast('❌ データが不正です'); return; }
 
-  if (mode === 'overwrite') {
-    classes  = payload.classes;
-    decks    = payload.decks;
-    mdata    = payload.mdata;
-    ndc      = payload.ndc || classes.length;
-    ndd      = payload.ndd || decks.length;
-    mySelected.clear();
-    save(); renderDecks(); renderMatrix(); renderAdvisor();
-    showToast('上書きインポートしました ✓');
-  } else {
-    // merge: remap IDs to avoid collisions
-    const classIdMap = {};
-    payload.classes.forEach(c => {
-      const newId = ndc++;
-      classIdMap[c.id] = newId;
-      classes.push({ id: newId, name: c.name });
-    });
-    const deckIdMap = {};
-    payload.decks.forEach(d => {
-      const newId = ndd++;
-      deckIdMap[d.id] = newId;
-      const newClassId = d.classId !== '' && d.classId !== null
-        ? (classIdMap[d.classId] !== undefined ? classIdMap[d.classId] : '')
-        : '';
-      decks.push({ id: newId, name: d.name, classId: newClassId });
-    });
-    // merge mdata with remapped IDs
-    Object.entries(payload.mdata).forEach(([k, v]) => {
-      const [rid, cid] = k.split('_');
-      const newR = deckIdMap[rid];
-      const newC = deckIdMap[cid];
-      if (newR !== undefined && newC !== undefined) {
-        mdata[mkey(newR, newC)] = v;
-      }
-    });
-    save(); renderDecks(); renderMatrix(); renderAdvisor();
-    showToast('追加インポートしました ✓');
+    if (mode === 'overwrite') {
+      classes = payload.classes;
+      decks   = payload.decks;
+      mdata   = payload.mdata;
+      ndc     = payload.ndc || classes.length;
+      ndd     = payload.ndd || decks.length;
+      mySelected.clear();
+      save(); renderDecks(); renderMatrix(); renderAdvisor();
+      showToast('上書きで読み込みました ✓');
+    } else {
+      const classIdMap = {};
+      payload.classes.forEach(c => {
+        const newId = ndc++;
+        classIdMap[c.id] = newId;
+        classes.push({ id: newId, name: c.name });
+      });
+      const deckIdMap = {};
+      payload.decks.forEach(d => {
+        const newId = ndd++;
+        deckIdMap[d.id] = newId;
+        const newClassId = d.classId !== '' && d.classId !== null
+          ? (classIdMap[d.classId] !== undefined ? classIdMap[d.classId] : '') : '';
+        decks.push({ id: newId, name: d.name, classId: newClassId });
+      });
+      Object.entries(payload.mdata).forEach(([k, v]) => {
+        const [rid, cid] = k.split('_');
+        const newR = deckIdMap[rid], newC = deckIdMap[cid];
+        if (newR !== undefined && newC !== undefined) mdata[mkey(newR, newC)] = v;
+      });
+      save(); renderDecks(); renderMatrix(); renderAdvisor();
+      showToast('追加で読み込みました ✓');
+    }
+    document.getElementById('pass-input').value = '';
+  } catch(e) {
+    showToast('❌ 読み込みに失敗しました');
   }
-  document.getElementById('import-text').value = '';
 }
 
 /* ── Share tab switch ── */
 function switchShareTab(tab) {
-  document.getElementById('share-export').style.display = tab === 'export' ? 'block' : 'none';
-  document.getElementById('share-import').style.display = tab === 'import' ? 'block' : 'none';
-  document.getElementById('tab-export').classList.toggle('on', tab === 'export');
-  document.getElementById('tab-import').classList.toggle('on', tab === 'import');
+  document.getElementById('share-upload').style.display   = tab === 'upload'   ? 'block' : 'none';
+  document.getElementById('share-download').style.display = tab === 'download' ? 'block' : 'none';
+  document.getElementById('tab-upload').classList.toggle('on',   tab === 'upload');
+  document.getElementById('tab-download').classList.toggle('on', tab === 'download');
 }
 
 /* ── Toast ── */
@@ -821,6 +852,22 @@ renderDecks();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
+
+/* ── Expose to global scope for onclick handlers ── */
+window.goPage        = goPage;
+window.addClass      = addClass;
+window.rmClass       = rmClass;
+window.updClass      = updClass;
+window.addDeck       = addDeck;
+window.rmDeck        = rmDeck;
+window.updDeck       = updDeck;
+window.updDeckClass  = updDeckClass;
+window.clickCell     = clickCell;
+window.toggleMy      = toggleMy;
+window.switchShareTab = switchShareTab;
+window.doUpload      = doUpload;
+window.copyPass      = copyPass;
+window.doDownload    = doDownload;
 </script>
 </body>
 </html>
